@@ -1,7 +1,11 @@
+
 name: Build Chess Titans APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -34,6 +38,25 @@ jobs:
         with:
           gradle-version: '8.7'
 
+      - name: Fix Java Kotlin compatibility
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("source/ChessTitansAndroid/app/build.gradle")
+          if not p.exists():
+              print("ERROR: app/build.gradle not found")
+              exit(1)
+
+          s = p.read_text()
+          s = s.replace("VERSION_1_8", "VERSION_17")
+          s = s.replace("VERSION_8", "VERSION_17")
+          p.write_text(s)
+
+          print("Updated Java compatibility settings:")
+          print(p.read_text())
+          PY
+
       - name: Build APK
         run: |
           cd source/ChessTitansAndroid
@@ -45,3 +68,4 @@ jobs:
           name: ChessTitans-APK
           path: '**/build/outputs/apk/debug/*.apk'
           if-no-files-found: error
+          
