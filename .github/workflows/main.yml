@@ -13,11 +13,12 @@ jobs:
     steps:
       - name: Download release parts
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdir parts
+          mkdir -p parts
           gh release download Port \
-            --pattern "ChessTitansAndroid_CloudBuildReady.part*" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern "*.zip" \
             --dir parts
           cat parts/ChessTitansAndroid_CloudBuildReady.part* > source.zip
           unzip -q source.zip -d source
