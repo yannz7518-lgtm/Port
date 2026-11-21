@@ -11,15 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download release parts
+            - name: Download release parts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p parts
           gh release download Port \
             --repo "$GITHUB_REPOSITORY" \
-            --pattern "*.zip" \
             --dir parts
+          ls -lh parts
           cat parts/ChessTitansAndroid_CloudBuildReady.part* > source.zip
           unzip -q source.zip -d source
 
