@@ -1,0 +1,71 @@
+name: Build Chess Titans APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download source parts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir parts
+          gh release download Port \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern "ChessTitansAndroid_CloudBuildReady.part*" \
+            --dir parts
+
+          cat parts/ChessTitansAndroid_CloudBuildReady.part* > source.zip
+          unzip -q source.zip -d source
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build APK
+        run: |
+          ROOT=$(find source -type f \
+            \( -name settings.gradle -o -name settings.gradle.kts \) \
+            -print -quit)
+
+          if [ -z "$ROOT" ]; then
+            echo "Gradle settings file not found"
+            exit 1
+          fi
+
+          cd "$(dirname "$ROOT")"
+          gradle assembleDebug
+
+      - name: Find APK
+        run: |
+          APK=$(find source -type f -name '*.apk' \
+            -path '*/build/outputs/apk/debug/*' \
+            -print -quit)
+
+          if [ -z "$APK" ]; then
+            echo "APK not found"
+            exit 1
+          fi
+
+          mkdir -p output
+          cp "$APK" output/ChessTitans-debug.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChessTitans-APK
+          path: output/ChessTitans-debug.apk
+          if-no-files-found: error
