@@ -36,8 +36,7 @@ jobs:
 
       - name: Build APK
         run: |
-          cd source
-          find . -name build.gradle -o -name build.gradle.kts
+          cd source/ChessTitansAndroid
           gradle assembleDebug
 
       - name: Upload APK
