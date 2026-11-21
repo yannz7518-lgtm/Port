@@ -1,0 +1,46 @@
+name: Build Chess Titans APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download ZIP parts from Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir parts
+          gh release download Port \
+            --pattern "ChessTitansAndroid_CloudBuildReady.part*" \
+            --dir parts
+          cat parts/ChessTitansAndroid_CloudBuildReady.part* > source.zip
+          unzip -q source.zip
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build APK
+        run: |
+          cd ChessTitansAndroid
+          gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChessTitans-APK
+          path: ChessTitansAndroid/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
