@@ -175,9 +175,9 @@ class ChessTitans3DPreviewActivity:Activity(){
         val top=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;setPadding(dp(8),dp(4),dp(8),dp(4));setBackgroundColor(0x770d1721.toInt())}
         fun button(label:String,action:()->Unit)=Button(this).apply{text=label;setTextColor(Color.WHITE);setOnClickListener{action()}}
         top.addView(button("Undo"){gl.queueEvent{renderer.undo()}},LinearLayout.LayoutParams(0,dp(44),1f))
-        top.addView(button("Baru"){gl.queueEvent{renderer.newGame()}},LinearLayout.LayoutParams(0,48,1f))
-        top.addView(button("Papan"){gl.queueEvent{renderer.cycleTheme()}},LinearLayout.LayoutParams(0,48,1f))
-        top.addView(button("Bidak"){gl.queueEvent{renderer.cyclePieceMaterial()}},LinearLayout.LayoutParams(0,48,1f))
+        top.addView(button("Baru"){gl.queueEvent{renderer.newGame()}},LinearLayout.LayoutParams(0,dp(44),1f))
+        top.addView(button("Papan"){gl.queueEvent{renderer.cycleTheme()}},LinearLayout.LayoutParams(0,dp(44),1f))
+        top.addView(button("Bidak"){gl.queueEvent{renderer.cyclePieceMaterial()}},LinearLayout.LayoutParams(0,dp(44),1f))
         root.addView(top,FrameLayout.LayoutParams(-1,-2,android.view.Gravity.TOP))
         status=TextView(this).apply{text="Putih jalan";setTextColor(Color.WHITE);textSize=15f;gravity=android.view.Gravity.CENTER;setPadding(dp(10),dp(7),dp(10),dp(7));setBackgroundColor(0x770d1721.toInt())}
         root.addView(status,FrameLayout.LayoutParams(-1,-2,android.view.Gravity.BOTTOM))
