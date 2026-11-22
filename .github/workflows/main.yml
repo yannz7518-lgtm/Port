@@ -32,17 +32,17 @@ jobs:
           from pathlib import Path
           p = Path("source/ChessTitansAndroid/app/src/main/java/com/example/chesstitans/render/ChessTitans3DRenderer.kt")
           s = p.read_text()
-          s = s.replace("import android.os.Handler\\nimport android.os.Looper\\n", "")
-          s = s.replace("    private val mainHandler=Handler(Looper.getMainLooper())\\n", "    @Volatile private var pendingAiMove:Move?=null\\n")
+          s = s.replace("import android.os.Handler\nimport android.os.Looper\n", "")
+          s = s.replace("    private val mainHandler=Handler(Looper.getMainLooper())\n", "    @Volatile private var pendingAiMove:Move?=null\n")
           s = s.replace("chess=Position(); history.clear(); aiThinking=false; syncPieces();", "chess=Position(); history.clear(); aiThinking=false; pendingAiMove=null; syncPieces();")
           old = "if(!chess.white&&legal.isNotEmpty()){aiThinking=true;Thread{val cp=chess.copy();val moves=cp.legal();val choice=if(moves.isNotEmpty())Engine.choose(cp,moves,2)else null;mainHandler.post{if(aiThinking&&choice!=null){applyMove(choice)};aiThinking=false}}.start()}"
           new = "if(!chess.white&&legal.isNotEmpty()){aiThinking=true;val snapshot=chess.copy();Thread{val moves=snapshot.legal();pendingAiMove=if(moves.isNotEmpty())Engine.choose(snapshot,moves,2)else null}.start()}"
           if old in s:
               s = s.replace(old, new)
           if "pendingAiMove:Move?" not in s:
-              s = s.replace("    private val history=mutableListOf<Position>()\\n", "    private val history=mutableListOf<Position>()\\n    @Volatile private var pendingAiMove:Move?=null\\n")
-          marker = "    override fun onDrawFrame(gl: GL10?) {\\n        updateCamera()"
-          replacement = "    override fun onDrawFrame(gl: GL10?) {\\n        val aiMove=pendingAiMove; if(aiMove!=null){pendingAiMove=null;if(aiThinking&&!chess.white&&chess.legal().any{it==aiMove})applyMove(aiMove);aiThinking=false}\\n        updateCamera()"
+              s = s.replace("    private val history=mutableListOf<Position>()\n", "    private val history=mutableListOf<Position>()\n    @Volatile private var pendingAiMove:Move?=null\n")
+          marker = "    override fun onDrawFrame(gl: GL10?) {\n        updateCamera()"
+          replacement = "    override fun onDrawFrame(gl: GL10?) {\n        val aiMove=pendingAiMove; if(aiMove!=null){pendingAiMove=null;if(aiThinking&&!chess.white&&chess.legal().any{it==aiMove})applyMove(aiMove);aiThinking=false}\n        updateCamera()"
           if marker in s:
               s = s.replace(marker, replacement)
           if "pendingAiMove" not in s:
@@ -72,14 +72,14 @@ jobs:
           s = p.read_text()
 
           s = re.sub(
-              r'(?m)^(\\s*sourceCompatibility\\s*=?\\s*).*$', 
-              r'\\1JavaVersion.VERSION_17',
+              r'(?m)^(\s*sourceCompatibility\s*=?\s*).*$', 
+              r'\1JavaVersion.VERSION_17',
               s
           )
 
           s = re.sub(
-              r'(?m)^(\\s*targetCompatibility\\s*=?\\s*).*$', 
-              r'\\1JavaVersion.VERSION_17',
+              r'(?m)^(\s*targetCompatibility\s*=?\s*).*$', 
+              r'\1JavaVersion.VERSION_17',
               s
           )
 
