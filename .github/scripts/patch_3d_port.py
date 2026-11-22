@@ -158,6 +158,24 @@ s=s.replace('draw(pieces[p.type]!!,x,0.06f+lift,z,0.42f,c[0],c[1],c[2],0,tex,pie
 s=s.replace('private fun draw(mesh:ObjMesh,x:Float,y:Float,z:Float,s:Float,r:Float,g:Float,b:Float,checker:Int,texture:Int,material:Int=0){', 'private fun draw(mesh:ObjMesh,x:Float,y:Float,z:Float,s:Float,r:Float,g:Float,b:Float,checker:Int,texture:Int,material:Int=0,rotationY:Float=0f){')
 s=s.replace('Matrix.scaleM(model,0,s,s,s)\\n        Matrix.multiplyMM(mvp', 'Matrix.scaleM(model,0,s,s,s)\\n        if(rotationY!=0f)Matrix.rotateM(model,0,rotationY,0f,1f,0f)\\n        Matrix.multiplyMM(mvp')
 s=s.replace('drawSquareHighlight(selectedFile,selectedRank,0.95f,0.80f,0.22f,0.34f)\n        for(p in boardPieces) place(p)', 'drawSquareHighlight(selectedFile,selectedRank,0.95f,0.80f,0.22f,0.34f)\n        for(move in legalMoves){val f=move.to%8;val r=7-move.to/8;val capture=chess.b[move.to]!=\'.\'||move.ep;drawSquareHighlight(f,r,if(capture)0.86f else 0.30f,if(capture)0.24f else 0.72f,if(capture)0.18f else 0.35f,0.22f)}\n        for(p in boardPieces) place(p)')
+a=s.index("    private fun place(p:BoardPiece){")
+b=s.index("    private fun drawSquareHighlight",a)
+place="""    private fun place(p:BoardPiece){
+        var x=-17.5f+p.file*5f;var z=17.5f-p.rank*5f;var lift=0f
+        if(p===animatedPiece&&animPath.isNotEmpty()){
+            val progress=((System.nanoTime()-animStartNanos).toFloat()/animDurationNanos).coerceIn(0f,1f)
+            val samplePos=progress*(animPath.lastIndex);val lo=samplePos.toInt().coerceIn(0,animPath.lastIndex);val hi=(lo+1).coerceIn(0,animPath.lastIndex);val t=samplePos-lo
+            val sample=FloatArray(3){i->animPath[lo][i]+(animPath[hi][i]-animPath[lo][i])*t}
+            x=animFromWorldX+sample[0];z=animFromWorldZ+sample[2];lift=sample[1]
+            if(progress>=1f)animatedPiece=null
+        }
+        drawShadow(x,z,0.065f)
+        val c=if(pieceMaterial==1){if(p.white)floatArrayOf(0.88f,0.90f,0.93f)else floatArrayOf(0.16f,0.18f,0.21f)}else if(p.white)floatArrayOf(0.94f,0.91f,0.83f)else floatArrayOf(0.42f,0.38f,0.33f)
+        val tex=if(pieceMaterial==0)if(p.white)whitePieceTex else blackPieceTex else 0
+        draw(pieces[p.type]!!,x,0.06f+lift,z,0.42f,c[0],c[1],c[2],0,tex,pieceMaterial,if(p.white)0f else 180f)
+    }
+"""
+s=s[:a]+place+s[b:]
 p.write_text(s)
 raw=root/"app/src/main/res/raw";raw.mkdir(parents=True,exist_ok=True)
 soundRoot=root/"app/src/main/assets/original_resources/MEDIA/SOUND"
