@@ -241,8 +241,12 @@ class ChessTitans3DPreviewActivity:Activity(){
         fun button(label:String,action:()->Unit)=Button(this).apply{text=label;setTextColor(Color.WHITE);setOnClickListener{action()}}
         top.addView(button("Undo"){gl.queueEvent{renderer.undo()}},LinearLayout.LayoutParams(0,dp(44),1f))
         top.addView(button("Baru"){gl.queueEvent{renderer.newGame()}},LinearLayout.LayoutParams(0,dp(44),1f))
-        top.addView(button("Papan"){gl.queueEvent{renderer.cycleTheme()}},LinearLayout.LayoutParams(0,dp(44),1f))
-        top.addView(button("Bidak"){gl.queueEvent{renderer.cyclePieceMaterial()}},LinearLayout.LayoutParams(0,dp(44),1f))
+        lateinit var boardButton:Button
+        boardButton=button("Marmer"){gl.queueEvent{renderer.cycleTheme();runOnUiThread{boardButton.text=renderer.themeName()}}}
+        top.addView(boardButton,LinearLayout.LayoutParams(0,dp(44),1f))
+        lateinit var pieceButton:Button
+        pieceButton=button("Porcelain"){gl.queueEvent{renderer.cyclePieceMaterial();runOnUiThread{pieceButton.text=renderer.pieceMaterialName()}}}
+        top.addView(pieceButton,LinearLayout.LayoutParams(0,dp(44),1f))
         lateinit var levelButton:Button
         levelButton=button("AI 2"){gl.queueEvent{val label=renderer.cycleDifficulty();runOnUiThread{levelButton.text=label}}}
         top.addView(levelButton,LinearLayout.LayoutParams(0,dp(44),1f))
