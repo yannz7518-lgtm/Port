@@ -120,8 +120,7 @@ game="""    private fun resetPosition(){
         if(soundPool!=null)return
         val attrs=AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
         soundPool=SoundPool.Builder().setMaxStreams(4).setAudioAttributes(attrs).build()
-        val names=mapOf("move" to "MOVEPIECE1.WAV","capture" to "CHESS_PIECETAKEN.WAV","check" to "CHECK.WAV")
-        try{names.forEach{(key,file)->val bytes=context.assets.open("original_resources/MEDIA/SOUND/$file").use{it.readBytes()};soundIds[key]=soundPool!!.load(bytes,0,bytes.size,1)}}catch(_:Exception){}
+        soundIds["move1"]=soundPool!!.load(context,R.raw.move1,1);soundIds["move2"]=soundPool!!.load(context,R.raw.move2,1);soundIds["move3"]=soundPool!!.load(context,R.raw.move3,1);soundIds["move4"]=soundPool!!.load(context,R.raw.move4,1);soundIds["move5"]=soundPool!!.load(context,R.raw.move5,1);soundIds["move6"]=soundPool!!.load(context,R.raw.move6,1);soundIds["capture"]=soundPool!!.load(context,R.raw.capture,1);soundIds["check"]=soundPool!!.load(context,R.raw.check,1)
         soundReady=true
     }
     private fun playSound(key:String){if(!soundReady)return;val id=if(key=="move")soundIds["move${(1..6).random()}"] else soundIds[key];if(id!=null)soundPool?.play(id,0.82f,0.82f,1,0,1f)}
