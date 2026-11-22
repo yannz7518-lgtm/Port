@@ -9,7 +9,7 @@ src.write_text(s)
 p=root/"app/src/main/java/com/example/chesstitans/render/ChessTitans3DRenderer.kt"
 s=p.read_text()
 s=s.replace("import android.opengl.Matrix\n", "import android.opengl.Matrix\nimport android.media.SoundPool\nimport android.media.AudioAttributes\nimport com.example.chesstitans.Position\nimport com.example.chesstitans.Move\nimport com.example.chesstitans.Engine\nimport com.example.chesstitans.R\n")
-s=s.replace("@Volatile var cameraPitch = 45f", "@Volatile var cameraPitch = 38f").replace("@Volatile var cameraDistance = 80f", "@Volatile var cameraDistance = 58f")
+s=s.replace("@Volatile var cameraPitch = 45f", "@Volatile var cameraPitch = 38f").replace("@Volatile var cameraDistance = 80f", "@Volatile var cameraDistance = 58f")\ns=s.replace("@Volatile private var pieceMaterial=0", "@Volatile private var pieceMaterial=1")
 s=s.replace("fun resetCamera() { cameraYaw=0f; cameraPitch=45f; cameraDistance=80f }", "fun resetCamera() { cameraYaw=0f; cameraPitch=38f; cameraDistance=58f }")
 fields="""    private var chess=Position()
     private data class GameSnapshot(val position:Position,val captured:List<BoardPiece>,val repetitions:List<String>)
@@ -160,7 +160,7 @@ s=s.replace('    override fun onDrawFrame(gl: GL10?) {\\n        updateCamera()'
 s=s.replace('draw(pieces[p.type]!!,x,0.06f+lift,z,0.42f,c[0],c[1],c[2],0,tex,pieceMaterial)', 'draw(pieces[p.type]!!,x,0.06f+lift,z,0.42f,c[0],c[1],c[2],0,tex,pieceMaterial,if(p.white)0f else 180f)')
 s=s.replace('private fun draw(mesh:ObjMesh,x:Float,y:Float,z:Float,s:Float,r:Float,g:Float,b:Float,checker:Int,texture:Int,material:Int=0){', 'private fun draw(mesh:ObjMesh,x:Float,y:Float,z:Float,s:Float,r:Float,g:Float,b:Float,checker:Int,texture:Int,material:Int=0,rotationY:Float=0f){')
 s=s.replace('Matrix.scaleM(model,0,s,s,s)\\n        Matrix.multiplyMM(mvp', 'Matrix.scaleM(model,0,s,s,s)\\n        if(rotationY!=0f)Matrix.rotateM(model,0,rotationY,0f,1f,0f)\\n        Matrix.multiplyMM(mvp')
-s=s.replace('drawSquareHighlight(selectedFile,selectedRank,0.95f,0.80f,0.22f,0.34f)\n        for(p in boardPieces) place(p)', 'drawSquareHighlight(selectedFile,selectedRank,0.95f,0.80f,0.22f,0.34f)\n        for(move in legalMoves){val f=move.to%8;val r=7-move.to/8;val capture=chess.b[move.to]!=\'.\'||move.ep;drawSquareHighlight(f,r,if(capture)0.86f else 0.30f,if(capture)0.24f else 0.72f,if(capture)0.18f else 0.35f,0.22f)}\n        for(p in boardPieces) place(p)')
+s=s.replace('drawSquareHighlight(selectedFile,selectedRank,0.95f,0.80f,0.22f,0.34f)\n        for(p in boardPieces) place(p)', 'drawSquareHighlight(selectedFile,selectedRank,0.95f,0.80f,0.22f,0.34f)\n        for(move in legalMoves){val f=move.to%8;val r=7-move.to/8;val capture=chess.b[move.to]!=\'.\'||move.ep;drawSquareHighlight(f,r,if(capture)0.86f else 0.18f,if(capture)0.24f else 0.62f,if(capture)0.18f else 0.98f,0.30f)}\n        for(p in boardPieces) place(p)')
 a=s.index("    private fun place(p:BoardPiece){")
 b=s.index("    private fun drawSquareHighlight",a)
 place="""    private fun place(p:BoardPiece){
