@@ -32,23 +32,23 @@ jobs:
           from pathlib import Path
           p = Path("source/ChessTitansAndroid/app/src/main/java/com/example/chesstitans/render/ChessTitans3DRenderer.kt")
           s = p.read_text()
-          s = s.replace("import android.os.Handler\nimport android.os.Looper\n", "")
-          s = s.replace("    private val mainHandler=Handler(Looper.getMainLooper())\n", "    @Volatile private var pendingAiMove:Move?=null\n")
+          nl = chr(10)
+          s = s.replace("import android.os.Handler", "").replace("import android.os.Looper", "")
+          s = s.replace("    private val mainHandler=Handler(Looper.getMainLooper())", "    @Volatile private var pendingAiMove:Move?=null")
           s = s.replace("chess=Position(); history.clear(); aiThinking=false; syncPieces();", "chess=Position(); history.clear(); aiThinking=false; pendingAiMove=null; syncPieces();")
           old = "if(!chess.white&&legal.isNotEmpty()){aiThinking=true;Thread{val cp=chess.copy();val moves=cp.legal();val choice=if(moves.isNotEmpty())Engine.choose(cp,moves,2)else null;mainHandler.post{if(aiThinking&&choice!=null){applyMove(choice)};aiThinking=false}}.start()}"
           new = "if(!chess.white&&legal.isNotEmpty()){aiThinking=true;val snapshot=chess.copy();Thread{val moves=snapshot.legal();pendingAiMove=if(moves.isNotEmpty())Engine.choose(snapshot,moves,2)else null}.start()}"
-          if old in s:
-              s = s.replace(old, new)
+          s = s.replace(old, new)
+          history = "    private val history=mutableListOf<Position>()"
           if "pendingAiMove:Move?" not in s:
-              s = s.replace("    private val history=mutableListOf<Position>()\n", "    private val history=mutableListOf<Position>()\n    @Volatile private var pendingAiMove:Move?=null\n")
-          marker = "    override fun onDrawFrame(gl: GL10?) {\n        updateCamera()"
-          replacement = "    override fun onDrawFrame(gl: GL10?) {\n        val aiMove=pendingAiMove; if(aiMove!=null){pendingAiMove=null;if(aiThinking&&!chess.white&&chess.legal().any{it==aiMove})applyMove(aiMove);aiThinking=false}\n        updateCamera()"
-          if marker in s:
-              s = s.replace(marker, replacement)
-          if "pendingAiMove" not in s:
-              raise SystemExit("AI thread-safety patch failed to apply")
+              s = s.replace(history, history + nl + "    @Volatile private var pendingAiMove:Move?=null")
+          marker = "    override fun onDrawFrame(gl: GL10?) {"
+          insert = "        val aiMove=pendingAiMove; if(aiMove!=null){pendingAiMove=null;if(aiThinking&&!chess.white&&chess.legal().any{it==aiMove})applyMove(aiMove);aiThinking=false}" + nl
+          s = s.replace(marker, marker + nl + insert, 1)
+          if "pendingAiMove:Move?" not in s or "val aiMove=pendingAiMove" not in s:
+              raise SystemExit("AI render-thread patch did not apply")
           p.write_text(s)
-          print("AI calculation runs off-thread; game-state changes are consumed on GL render thread")
+          print("AI state updates now run on the OpenGL render thread.")
           PY
 
       - name: Setup Java
