@@ -1,0 +1,49 @@
+name: Chess Titans Emulator Visual Check
+
+on:
+  workflow_run:
+    workflows: ["Build Chess Titans APK"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  screenshot:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download built APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ChessTitans-APK
+          path: apk
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Launch in Android emulator and capture screen
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          profile: pixel_2
+          target: default
+          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -camera-back none
+          disable-animations: true
+          script: |
+            APK="$(find apk -name '*.apk' | head -n 1)"
+            adb install "$APK"
+            adb shell am start -n com.example.chesstitans/.ChessTitans3DPreviewActivity
+            sleep 15
+            adb shell screencap -p /sdcard/chesstitans.png
+            adb pull /sdcard/chesstitans.png screenshot.png
+            adb logcat -d > logcat.txt
+
+      - name: Upload emulator screenshot and logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChessTitans-VisualCheck
+          path: |
+            screenshot.png
+            logcat.txt
