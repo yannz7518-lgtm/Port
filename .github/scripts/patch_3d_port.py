@@ -50,7 +50,7 @@ game="""    private fun resetPosition(){
     private fun squareIndex(file:Int,rank:Int)=(7-rank)*8+file
     private fun selectSquare(file:Int,rank:Int){selectedFile=file;selectedRank=rank;legalMoves=chess.legal().filter{it.from==squareIndex(file,rank)}}
     fun screenTap(x:Float,y:Float){
-        if(viewportWidth<=0||viewportHeight<=0||aiThinking||!chess.white)return
+        if(viewportWidth<=0||viewportHeight<=0||aiThinking||!chess.white||isGameOver())return
         Matrix.multiplyMM(vp,0,projection,0,view,0);if(!Matrix.invertM(invVp,0,vp,0))return
         val nx=2f*x/viewportWidth-1f;val ny=1f-2f*y/viewportHeight
         val near=FloatArray(4);val far=FloatArray(4)
