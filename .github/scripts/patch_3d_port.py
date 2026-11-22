@@ -127,7 +127,7 @@ game="""    private fun resetPosition(){
     fun release(){soundPool?.release();soundPool=null;soundReady=false}
 """
 s=s[:a]+game+s[b:]
- s=s.replace("private val animDurationNanos=320_000_000L", "private var animDurationNanos=320_000_000L")
+s=s.replace("private val animDurationNanos=320_000_000L", "private var animDurationNanos=320_000_000L")
 s=s.replace("private var animFromFile=0; private var animFromRank=0; private var animStartNanos=0L", "private var animFromFile=0; private var animFromRank=0; private var animStartNanos=0L; private var animFromWorldX=0f; private var animFromWorldZ=0f; private var animPath=emptyList<FloatArray>(); private val animationCache=mutableMapOf<String,List<FloatArray>>()")
 s=s.replace("if(moved!=null){animFromFile=fromFile;animFromRank=fromRank;lastFromFile=fromFile;lastFromRank=fromRank;lastToFile=toFile;lastToRank=toRank;animatedPiece=moved;animStartNanos=System.nanoTime()}", "if(moved!=null){startMoveAnimation(fromFile,fromRank,toFile,toRank);lastFromFile=fromFile;lastFromRank=fromRank;lastToFile=toFile;lastToRank=toRank;animatedPiece=moved}")
 helpers="""    private fun animationData(name:String):List<FloatArray> = animationCache.getOrPut(name){
