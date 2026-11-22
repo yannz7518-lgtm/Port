@@ -18,7 +18,9 @@ fields="""    private var chess=Position()
     private val capturedPieces=mutableListOf<BoardPiece>()
     private val repetitionKeys=mutableListOf<String>()
     private var legalMoves=emptyList<Move>()
-    @Volatile private var aiThinking=false\n    @Volatile private var aiLevel=2\n    private var gameOverSoundPlayed=false
+    @Volatile private var aiThinking=false
+    @Volatile private var aiLevel=2
+    private var gameOverSoundPlayed=false
     @Volatile private var pendingAiMove:Move?=null
     @Volatile private var aiResultReady=false
     @Volatile private var gameGeneration=0
@@ -100,7 +102,8 @@ game="""    private fun resetPosition(){
             gameOverSoundPlayed=false;repetitionKeys.clear();repetitionKeys.addAll(snapshot.repetitions);selectedFile=-1;selectedRank=-1;legalMoves=emptyList();animatedPiece=null;syncPieces();updateStatus()
         }
     }
-    fun cycleDifficulty():String{aiLevel=aiLevel%3+1;return "AI "+aiLevel}\n    fun newGame(){resetPosition();playSound("move")}
+    fun cycleDifficulty():String{aiLevel=aiLevel%3+1;return "AI "+aiLevel}
+    fun newGame(){resetPosition();playSound("move")}
     private fun isGameOver():Boolean{
         val lm=chess.legal()
         return lm.isEmpty()||chess.half>=100||repetitionKeys.count{it==chess.repetitionKey()}>=3||chess.insufficientMaterial()
@@ -238,7 +241,10 @@ class ChessTitans3DPreviewActivity:Activity(){
         top.addView(button("Undo"){gl.queueEvent{renderer.undo()}},LinearLayout.LayoutParams(0,dp(44),1f))
         top.addView(button("Baru"){gl.queueEvent{renderer.newGame()}},LinearLayout.LayoutParams(0,dp(44),1f))
         top.addView(button("Papan"){gl.queueEvent{renderer.cycleTheme()}},LinearLayout.LayoutParams(0,dp(44),1f))
-        top.addView(button("Bidak"){gl.queueEvent{renderer.cyclePieceMaterial()}},LinearLayout.LayoutParams(0,dp(44),1f))\n        lateinit var levelButton:Button\n        levelButton=button("AI 2"){gl.queueEvent{val label=renderer.cycleDifficulty();runOnUiThread{levelButton.text=label}}}\n        top.addView(levelButton,LinearLayout.LayoutParams(0,dp(44),1f))
+        top.addView(button("Bidak"){gl.queueEvent{renderer.cyclePieceMaterial()}},LinearLayout.LayoutParams(0,dp(44),1f))
+        lateinit var levelButton:Button
+        levelButton=button("AI 2"){gl.queueEvent{val label=renderer.cycleDifficulty();runOnUiThread{levelButton.text=label}}}
+        top.addView(levelButton,LinearLayout.LayoutParams(0,dp(44),1f))
         root.addView(top,FrameLayout.LayoutParams(-1,-2,android.view.Gravity.TOP))
         status=TextView(this).apply{text="Putih jalan";setTextColor(Color.WHITE);textSize=15f;gravity=android.view.Gravity.CENTER;setPadding(dp(10),dp(7),dp(10),dp(7));setBackgroundColor(0x770d1721.toInt())}
         root.addView(status,FrameLayout.LayoutParams(-1,-2,android.view.Gravity.BOTTOM))
