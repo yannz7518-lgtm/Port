@@ -135,6 +135,10 @@ s=s.replace('draw(pieces[p.type]!!,x,0.06f+lift,z,0.42f,c[0],c[1],c[2],0,tex,pie
 s=s.replace('private fun draw(mesh:ObjMesh,x:Float,y:Float,z:Float,s:Float,r:Float,g:Float,b:Float,checker:Int,texture:Int,material:Int=0){', 'private fun draw(mesh:ObjMesh,x:Float,y:Float,z:Float,s:Float,r:Float,g:Float,b:Float,checker:Int,texture:Int,material:Int=0,rotationY:Float=0f){')
 s=s.replace('Matrix.scaleM(model,0,s,s,s)\\n        Matrix.multiplyMM(mvp', 'Matrix.scaleM(model,0,s,s,s)\\n        if(rotationY!=0f)Matrix.rotateM(model,0,rotationY,0f,1f,0f)\\n        Matrix.multiplyMM(mvp')
 p.write_text(s)
+raw=root/"app/src/main/res/raw";raw.mkdir(parents=True,exist_ok=True)
+soundRoot=root/"app/src/main/assets/original_resources/MEDIA/SOUND"
+for srcName,dstName in [("MOVEPIECE1.WAV","move1.wav"),("MOVEPIECE2.WAV","move2.wav"),("MOVEPIECE3.WAV","move3.wav"),("MOVEPIECE4.WAV","move4.wav"),("MOVEPIECE5.WAV","move5.wav"),("MOVEPIECE6.WAV","move6.wav"),("CHESS_PIECETAKEN.WAV","capture.wav"),("CHECK.WAV","check.wav")]:
+    (raw/dstName).write_bytes((soundRoot/srcName).read_bytes())
 
 activity=root/"app/src/main/java/com/example/chesstitans/ChessTitans3DPreviewActivity.kt"
 activity.write_text("""package com.example.chesstitans
