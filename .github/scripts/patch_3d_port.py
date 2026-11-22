@@ -70,7 +70,7 @@ game="""    private fun resetPosition(){
         if(aiThinking&&chess.white)return
         val fromFile=move.from%8;val fromRank=7-move.from/8;val toFile=move.to%8;val toRank=7-move.to/8
         val captured=chess.b[move.to]!='.'||move.ep
-        val captureSquare=if(move.ep)move.to+(if(chess.white)8 else -8)else move.to;val capturedChar=chess.b[captureSquare];if(capturedChar!='.'){val capturedType=when(capturedChar.uppercaseChar()){'K'->"KING";'Q'->"QUEEN";'B'->"BISHOP";'N'->"KNIGHT";'R'->"ROOK";else->"PAWN"};capturedPieces.add(BoardPiece(capturedType,capturedChar.isUpperCase(),-1,-1))};gameHistory.add(GameSnapshot(chess.copy(),capturedPieces.toList(),repetitionKeys.toList()));chess.apply(move);repetitionKeys.add(chess.repetitionKey())
+        val captureSquare=if(move.ep)move.to+(if(chess.white)8 else -8)else move.to;val capturedChar=chess.b[captureSquare];gameHistory.add(GameSnapshot(chess.copy(),capturedPieces.toList(),repetitionKeys.toList()));if(capturedChar!='.'){val capturedType=when(capturedChar.uppercaseChar()){'K'->"KING";'Q'->"QUEEN";'B'->"BISHOP";'N'->"KNIGHT";'R'->"ROOK";else->"PAWN"};capturedPieces.add(BoardPiece(capturedType,capturedChar.isUpperCase(),-1,-1))};chess.apply(move);repetitionKeys.add(chess.repetitionKey())
         syncPieces();val moved=boardPieces.firstOrNull{it.file==toFile&&it.rank==toRank}
         if(moved!=null){animFromFile=fromFile;animFromRank=fromRank;lastFromFile=fromFile;lastFromRank=fromRank;lastToFile=toFile;lastToRank=toRank;animatedPiece=moved;animStartNanos=System.nanoTime()}
         selectedFile=-1;selectedRank=-1;legalMoves=emptyList()
