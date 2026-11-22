@@ -18,7 +18,7 @@ fields="""    private var chess=Position()
     private val capturedPieces=mutableListOf<BoardPiece>()
     private val repetitionKeys=mutableListOf<String>()
     private var legalMoves=emptyList<Move>()
-    @Volatile private var aiThinking=false
+    @Volatile private var aiThinking=false\n    @Volatile private var aiLevel=2\n    private var gameOverSoundPlayed=false
     @Volatile private var pendingAiMove:Move?=null
     @Volatile private var aiResultReady=false
     @Volatile private var gameGeneration=0
@@ -65,7 +65,7 @@ game="""    private fun resetPosition(){
         if(selectedFile<0){if(at!='.'&&at.isUpperCase())selectSquare(file,rank)}
         else if(file==selectedFile&&rank==selectedRank){selectedFile=-1;selectedRank=-1;legalMoves=emptyList()}
         else if(at!='.'&&at.isUpperCase())selectSquare(file,rank)
-        else {val move=legalMoves.firstOrNull{it.to==sq};if(move!=null)applyMove(move)}
+        else {val move=legalMoves.firstOrNull{it.to==sq};if(move!=null)applyMove(move)else playSound("illegal")}
     }
     private fun applyMove(move:Move){
         if(aiThinking&&chess.white)return
@@ -81,7 +81,7 @@ game="""    private fun resetPosition(){
     private fun startAI(){
         if(aiThinking||chess.white||isGameOver())return
         aiThinking=true;updateStatus();val generation=gameGeneration;val snapshot=chess.copy();val moves=snapshot.legal()
-        Thread{val choice=if(moves.isNotEmpty())Engine.choose(snapshot,moves,2)else null
+        Thread{val choice=if(moves.isNotEmpty())Engine.choose(snapshot,moves,aiLevel)else null
             if(generation==gameGeneration){pendingAiMove=choice;aiResultReady=true}
         }.start()
     }
@@ -97,10 +97,10 @@ game="""    private fun resetPosition(){
             var snapshot=gameHistory.removeAt(gameHistory.lastIndex)
             if(!snapshot.position.white&&gameHistory.isNotEmpty())snapshot=gameHistory.removeAt(gameHistory.lastIndex)
             chess=snapshot.position.copy();capturedPieces.clear();capturedPieces.addAll(snapshot.captured)
-            repetitionKeys.clear();repetitionKeys.addAll(snapshot.repetitions);selectedFile=-1;selectedRank=-1;legalMoves=emptyList();animatedPiece=null;syncPieces();updateStatus()
+            gameOverSoundPlayed=false;repetitionKeys.clear();repetitionKeys.addAll(snapshot.repetitions);selectedFile=-1;selectedRank=-1;legalMoves=emptyList();animatedPiece=null;syncPieces();updateStatus()
         }
     }
-    fun newGame(){resetPosition();playSound("move")}
+    fun cycleDifficulty():String{aiLevel=aiLevel%3+1;return "AI "+aiLevel}\n    fun newGame(){resetPosition();playSound("move")}
     private fun isGameOver():Boolean{
         val lm=chess.legal()
         return lm.isEmpty()||chess.half>=100||repetitionKeys.count{it==chess.repetitionKey()}>=3||chess.insufficientMaterial()
@@ -124,7 +124,7 @@ game="""    private fun resetPosition(){
         if(soundPool!=null)return
         val attrs=AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
         soundPool=SoundPool.Builder().setMaxStreams(4).setAudioAttributes(attrs).build()
-        soundIds["move1"]=soundPool!!.load(context,R.raw.move1,1);soundIds["move2"]=soundPool!!.load(context,R.raw.move2,1);soundIds["move3"]=soundPool!!.load(context,R.raw.move3,1);soundIds["move4"]=soundPool!!.load(context,R.raw.move4,1);soundIds["move5"]=soundPool!!.load(context,R.raw.move5,1);soundIds["move6"]=soundPool!!.load(context,R.raw.move6,1);soundIds["capture"]=soundPool!!.load(context,R.raw.capture,1);soundIds["check"]=soundPool!!.load(context,R.raw.check,1)
+        soundIds["move1"]=soundPool!!.load(context,R.raw.move1,1);soundIds["move2"]=soundPool!!.load(context,R.raw.move2,1);soundIds["move3"]=soundPool!!.load(context,R.raw.move3,1);soundIds["move4"]=soundPool!!.load(context,R.raw.move4,1);soundIds["move5"]=soundPool!!.load(context,R.raw.move5,1);soundIds["move6"]=soundPool!!.load(context,R.raw.move6,1);soundIds["capture"]=soundPool!!.load(context,R.raw.capture,1);soundIds["check"]=soundPool!!.load(context,R.raw.check,1);soundIds["win"]=soundPool!!.load(context,R.raw.win,1);soundIds["lose"]=soundPool!!.load(context,R.raw.lose,1);soundIds["illegal"]=soundPool!!.load(context,R.raw.illegal,1)
         soundReady=true
     }
     private fun playSound(key:String){if(!soundReady)return;val id=if(key=="move")soundIds["move${(1..6).random()}"] else soundIds[key];if(id!=null)soundPool?.play(id,0.82f,0.82f,1,0,1f)}
@@ -199,7 +199,7 @@ s=s.replace("if(capture)0.86f else 0.30f,if(capture)0.24f else 0.72f,if(capture)
 p.write_text(s)
 raw=root/"app/src/main/res/raw";raw.mkdir(parents=True,exist_ok=True)
 soundRoot=root/"app/src/main/assets/original_resources/MEDIA/SOUND"
-for srcName,dstName in [("MOVEPIECE1.WAV","move1.wav"),("MOVEPIECE2.WAV","move2.wav"),("MOVEPIECE3.WAV","move3.wav"),("MOVEPIECE4.WAV","move4.wav"),("MOVEPIECE5.WAV","move5.wav"),("MOVEPIECE6.WAV","move6.wav"),("CHESS_PIECETAKEN.WAV","capture.wav"),("CHECK.WAV","check.wav")]:
+for srcName,dstName in [("MOVEPIECE1.WAV","move1.wav"),("MOVEPIECE2.WAV","move2.wav"),("MOVEPIECE3.WAV","move3.wav"),("MOVEPIECE4.WAV","move4.wav"),("MOVEPIECE5.WAV","move5.wav"),("MOVEPIECE6.WAV","move6.wav"),("CHESS_PIECETAKEN.WAV","capture.wav"),("CHECK.WAV","check.wav"),("CHECKMATEWIN.WAV","win.wav"),("CHECKMATELOSE.WAV","lose.wav"),("ILLEGALMOVE.WAV","illegal.wav")]:
     (raw/dstName).write_bytes((soundRoot/srcName).read_bytes())
 
 activity=root/"app/src/main/java/com/example/chesstitans/ChessTitans3DPreviewActivity.kt"
@@ -238,7 +238,7 @@ class ChessTitans3DPreviewActivity:Activity(){
         top.addView(button("Undo"){gl.queueEvent{renderer.undo()}},LinearLayout.LayoutParams(0,dp(44),1f))
         top.addView(button("Baru"){gl.queueEvent{renderer.newGame()}},LinearLayout.LayoutParams(0,dp(44),1f))
         top.addView(button("Papan"){gl.queueEvent{renderer.cycleTheme()}},LinearLayout.LayoutParams(0,dp(44),1f))
-        top.addView(button("Bidak"){gl.queueEvent{renderer.cyclePieceMaterial()}},LinearLayout.LayoutParams(0,dp(44),1f))
+        top.addView(button("Bidak"){gl.queueEvent{renderer.cyclePieceMaterial()}},LinearLayout.LayoutParams(0,dp(44),1f))\n        lateinit var levelButton:Button\n        levelButton=button("AI 2"){gl.queueEvent{val label=renderer.cycleDifficulty();runOnUiThread{levelButton.text=label}}}\n        top.addView(levelButton,LinearLayout.LayoutParams(0,dp(44),1f))
         root.addView(top,FrameLayout.LayoutParams(-1,-2,android.view.Gravity.TOP))
         status=TextView(this).apply{text="Putih jalan";setTextColor(Color.WHITE);textSize=15f;gravity=android.view.Gravity.CENTER;setPadding(dp(10),dp(7),dp(10),dp(7));setBackgroundColor(0x770d1721.toInt())}
         root.addView(status,FrameLayout.LayoutParams(-1,-2,android.view.Gravity.BOTTOM))
