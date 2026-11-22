@@ -9,8 +9,8 @@ src.write_text(s)
 p=root/"app/src/main/java/com/example/chesstitans/render/ChessTitans3DRenderer.kt"
 s=p.read_text()
 s=s.replace("import android.opengl.Matrix\n", "import android.opengl.Matrix\nimport android.media.SoundPool\nimport android.media.AudioAttributes\nimport com.example.chesstitans.Position\nimport com.example.chesstitans.Move\nimport com.example.chesstitans.Engine\nimport com.example.chesstitans.R\n")
-s=s.replace("@Volatile var cameraPitch = 45f", "@Volatile var cameraPitch = 42f").replace("@Volatile var cameraDistance = 80f", "@Volatile var cameraDistance = 54f")
-s=s.replace("fun resetCamera() { cameraYaw=0f; cameraPitch=45f; cameraDistance=80f }", "fun resetCamera() { cameraYaw=0f; cameraPitch=42f; cameraDistance=54f }")
+s=s.replace("@Volatile var cameraPitch = 45f", "@Volatile var cameraPitch = 38f").replace("@Volatile var cameraDistance = 80f", "@Volatile var cameraDistance = 58f")
+s=s.replace("fun resetCamera() { cameraYaw=0f; cameraPitch=45f; cameraDistance=80f }", "fun resetCamera() { cameraYaw=0f; cameraPitch=38f; cameraDistance=58f }")
 fields="""    private var chess=Position()
     private val gameHistory=mutableListOf<Position>()
     private val repetitionKeys=mutableListOf<String>()
@@ -129,11 +129,12 @@ game="""    private fun resetPosition(){
 s=s[:a]+game+s[b:]
 # exact render tweaks and safeguards
 s=s.replace('listOf("KING","QUEEN","BISHOP","KNIGHT","ROOK","PAWN").forEach { pieces[it]=ObjMesh.load(context,"meshes/high/$it.obj") }; resetPosition()', 'listOf("KING","QUEEN","BISHOP","KNIGHT","ROOK","PAWN").forEach { pieces[it]=ObjMesh.load(context,"meshes/high/$it.obj") }; initSounds(); resetPosition()')
-s=s.replace('Matrix.perspectiveM(projection,0,36f,aspect,1f,220f)', 'Matrix.perspectiveM(projection,0,34f,aspect,1f,220f)')
+s=s.replace('Matrix.perspectiveM(projection,0,36f,aspect,1f,220f)', 'Matrix.perspectiveM(projection,0,36f,aspect,1f,220f)')
 s=s.replace('    override fun onDrawFrame(gl: GL10?) {\\n        updateCamera()', '    override fun onDrawFrame(gl: GL10?) {\\n        processAIResult()\\n        updateCamera()')
 s=s.replace('draw(pieces[p.type]!!,x,0.06f+lift,z,0.42f,c[0],c[1],c[2],0,tex,pieceMaterial)', 'draw(pieces[p.type]!!,x,0.06f+lift,z,0.42f,c[0],c[1],c[2],0,tex,pieceMaterial,if(p.white)0f else 180f)')
 s=s.replace('private fun draw(mesh:ObjMesh,x:Float,y:Float,z:Float,s:Float,r:Float,g:Float,b:Float,checker:Int,texture:Int,material:Int=0){', 'private fun draw(mesh:ObjMesh,x:Float,y:Float,z:Float,s:Float,r:Float,g:Float,b:Float,checker:Int,texture:Int,material:Int=0,rotationY:Float=0f){')
 s=s.replace('Matrix.scaleM(model,0,s,s,s)\\n        Matrix.multiplyMM(mvp', 'Matrix.scaleM(model,0,s,s,s)\\n        if(rotationY!=0f)Matrix.rotateM(model,0,rotationY,0f,1f,0f)\\n        Matrix.multiplyMM(mvp')
+s=s.replace('drawSquareHighlight(selectedFile,selectedRank,0.95f,0.80f,0.22f,0.34f)\n        for(p in boardPieces) place(p)', 'drawSquareHighlight(selectedFile,selectedRank,0.95f,0.80f,0.22f,0.34f)\n        for(move in legalMoves){val f=move.to%8;val r=7-move.to/8;val capture=chess.b[move.to]!=\'.\'||move.ep;drawSquareHighlight(f,r,if(capture)0.86f else 0.30f,if(capture)0.24f else 0.72f,if(capture)0.18f else 0.35f,0.22f)}\n        for(p in boardPieces) place(p)')
 p.write_text(s)
 raw=root/"app/src/main/res/raw";raw.mkdir(parents=True,exist_ok=True)
 soundRoot=root/"app/src/main/assets/original_resources/MEDIA/SOUND"
@@ -171,17 +172,18 @@ class ChessTitans3DPreviewActivity:Activity(){
         gl.setRenderer(renderer);gl.renderMode=GLSurfaceView.RENDERMODE_CONTINUOUSLY
         gl.setOnTouchListener{_,event->if(event.action==MotionEvent.ACTION_UP)gl.queueEvent{renderer.screenTap(event.x,event.y)};true}
         val root=FrameLayout(this);root.addView(gl,FrameLayout.LayoutParams(-1,-1))
-        val top=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;setPadding(8,4,8,4);setBackgroundColor(0x770d1721.toInt())}
+        val top=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;setPadding(dp(8),dp(4),dp(8),dp(4));setBackgroundColor(0x770d1721.toInt())}
         fun button(label:String,action:()->Unit)=Button(this).apply{text=label;setTextColor(Color.WHITE);setOnClickListener{action()}}
-        top.addView(button("Undo"){gl.queueEvent{renderer.undo()}},LinearLayout.LayoutParams(0,48,1f))
+        top.addView(button("Undo"){gl.queueEvent{renderer.undo()}},LinearLayout.LayoutParams(0,dp(44),1f))
         top.addView(button("Baru"){gl.queueEvent{renderer.newGame()}},LinearLayout.LayoutParams(0,48,1f))
         top.addView(button("Papan"){gl.queueEvent{renderer.cycleTheme()}},LinearLayout.LayoutParams(0,48,1f))
         top.addView(button("Bidak"){gl.queueEvent{renderer.cyclePieceMaterial()}},LinearLayout.LayoutParams(0,48,1f))
         root.addView(top,FrameLayout.LayoutParams(-1,-2,android.view.Gravity.TOP))
-        status=TextView(this).apply{text="Putih jalan";setTextColor(Color.WHITE);textSize=15f;gravity=android.view.Gravity.CENTER;setPadding(10,7,10,7);setBackgroundColor(0x770d1721.toInt())}
+        status=TextView(this).apply{text="Putih jalan";setTextColor(Color.WHITE);textSize=15f;gravity=android.view.Gravity.CENTER;setPadding(dp(10),dp(7),dp(10),dp(7));setBackgroundColor(0x770d1721.toInt())}
         root.addView(status,FrameLayout.LayoutParams(-1,-2,android.view.Gravity.BOTTOM))
         setContentView(root)
     }
+    private fun dp(v:Int)=(v*resources.displayMetrics.density).toInt()
     override fun onPause(){super.onPause();if(::gl.isInitialized)gl.onPause()}
     override fun onResume(){super.onResume();if(::gl.isInitialized)gl.onResume()}
     override fun onDestroy(){if(::renderer.isInitialized)renderer.release();super.onDestroy()}
