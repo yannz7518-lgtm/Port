@@ -8,7 +8,7 @@ src.write_text(s)
 
 p=root/"app/src/main/java/com/example/chesstitans/render/ChessTitans3DRenderer.kt"
 s=p.read_text()
-s=s.replace("import android.opengl.Matrix\n", "import android.opengl.Matrix\nimport android.media.SoundPool\nimport android.media.AudioAttributes\n")
+s=s.replace("import android.opengl.Matrix\n", "import android.opengl.Matrix\nimport android.media.SoundPool\nimport android.media.AudioAttributes\nimport com.example.chesstitans.Position\nimport com.example.chesstitans.Move\nimport com.example.chesstitans.Engine\nimport com.example.chesstitans.R\n")
 s=s.replace("@Volatile var cameraPitch = 45f", "@Volatile var cameraPitch = 42f").replace("@Volatile var cameraDistance = 80f", "@Volatile var cameraDistance = 54f")
 s=s.replace("fun resetCamera() { cameraYaw=0f; cameraPitch=45f; cameraDistance=80f }", "fun resetCamera() { cameraYaw=0f; cameraPitch=42f; cameraDistance=54f }")
 fields="""    private var chess=Position()
