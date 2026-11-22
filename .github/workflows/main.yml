@@ -26,37 +26,6 @@ jobs:
           cat parts/ChessTitansAndroid_CloudBuildReady.part* > source.zip
           unzip -q source.zip -d source
 
-      - name: Keep AI updates on the OpenGL render thread
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          p = Path("source/ChessTitansAndroid/app/src/main/java/com/example/chesstitans/render/ChessTitans3DRenderer.kt")
-          s = p.read_text()
-          nl = chr(10)
-          s = s.replace("import android.os.Handler", "").replace("import android.os.Looper", "")
-          old = "if(!chess.white&&legal.isNotEmpty()){aiThinking=true;Thread{val cp=chess.copy();val moves=cp.legal();val choice=if(moves.isNotEmpty())Engine.choose(cp,moves,2)else null;mainHandler.post{if(aiThinking&&choice!=null){applyMove(choice)};aiThinking=false}}.start()}"
-          new = "if(!chess.white&&legal.isNotEmpty()){aiThinking=true;val snapshot=chess.copy();Thread{val moves=snapshot.legal();pendingAiMove=if(moves.isNotEmpty())Engine.choose(snapshot,moves,2)else null;aiResultReady=true}.start()}"
-          if old in s:
-              s = s.replace(old, new, 1)
-          elif "pendingAiMove=" not in s:
-              raise SystemExit("AI worker block pattern not found")
-          draw = re.search(r"(?m)^\s*override fun onDrawFrame\(gl: GL10\?\)\s*\{", s)
-          if not draw: raise SystemExit("onDrawFrame declaration not found")
-          fields = "    @Volatile private var pendingAiMove:Move?=null" + nl + "    @Volatile private var aiResultReady=false" + nl
-          if "pendingAiMove:Move?" not in s:
-              s = s[:draw.start()] + fields + s[draw.start():]
-              draw = re.search(r"(?m)^\s*override fun onDrawFrame\(gl: GL10\?\)\s*\{", s)
-          poll = "        if(aiResultReady){aiResultReady=false;val move=pendingAiMove;pendingAiMove=null;if(aiThinking&&move!=null&&!chess.white&&chess.legal().any{it==move})applyMove(move);aiThinking=false}" + nl
-          if "if(aiResultReady)" not in s:
-              s = s[:draw.end()] + nl + poll + s[draw.end():]
-          s = s.replace("aiThinking=false;", "aiThinking=false;pendingAiMove=null;aiResultReady=false;")
-          if "if(aiResultReady)" not in s or "pendingAiMove:Move?" not in s:
-              raise SystemExit("render-thread AI patch validation failed")
-          p.write_text(s)
-          print("Render-thread AI patch applied and validated.")
-          PY
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
