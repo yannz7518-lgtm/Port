@@ -179,6 +179,22 @@ place="""    private fun place(p:BoardPiece){
     }
 """
 s=s[:a]+place+s[b:]
+s=s.replace("        for(p in boardPieces) place(p)", "        for(p in boardPieces) place(p)\n        drawCapturedPieces()")
+captured="""    private fun drawCapturedPieces(){
+        val whiteCaptured=capturedPieces.filter{it.white};val blackCaptured=capturedPieces.filter{!it.white}
+        whiteCaptured.forEachIndexed{i,p->placeCaptured(p,i,true)}
+        blackCaptured.forEachIndexed{i,p->placeCaptured(p,i,false)}
+    }
+    private fun placeCaptured(p:BoardPiece,index:Int,whiteSide:Boolean){
+        val col=index/8;val row=index%8;val x=if(whiteSide)22.8f+col*2.7f else -22.8f-col*2.7f;val z=17.5f-row*4.2f
+        drawShadow(x,z,0.065f)
+        val c=if(pieceMaterial==1){if(p.white)floatArrayOf(0.88f,0.90f,0.93f)else floatArrayOf(0.16f,0.18f,0.21f)}else if(p.white)floatArrayOf(0.94f,0.91f,0.83f)else floatArrayOf(0.42f,0.38f,0.33f)
+        val tex=if(pieceMaterial==0)if(p.white)whitePieceTex else blackPieceTex else 0
+        draw(pieces[p.type]!!,x,0.06f,z,0.28f,c[0],c[1],c[2],0,tex,pieceMaterial,if(p.white)0f else 180f)
+    }
+"""
+s=s.replace("    private fun drawSquareHighlight", captured+"    private fun drawSquareHighlight",1)
+s=s.replace("if(capture)0.86f else 0.30f,if(capture)0.24f else 0.72f,if(capture)0.18f else 0.35f,0.22f", "if(capture)0.86f else 0.18f,if(capture)0.24f else 0.62f,if(capture)0.18f else 0.98f,0.30f")
 p.write_text(s)
 raw=root/"app/src/main/res/raw";raw.mkdir(parents=True,exist_ok=True)
 soundRoot=root/"app/src/main/assets/original_resources/MEDIA/SOUND"
