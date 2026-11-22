@@ -127,6 +127,29 @@ game="""    private fun resetPosition(){
     fun release(){soundPool?.release();soundPool=null;soundReady=false}
 """
 s=s[:a]+game+s[b:]
+ s=s.replace("private val animDurationNanos=320_000_000L", "private var animDurationNanos=320_000_000L")
+s=s.replace("private var animFromFile=0; private var animFromRank=0; private var animStartNanos=0L", "private var animFromFile=0; private var animFromRank=0; private var animStartNanos=0L; private var animFromWorldX=0f; private var animFromWorldZ=0f; private var animPath=emptyList<FloatArray>(); private val animationCache=mutableMapOf<String,List<FloatArray>>()")
+s=s.replace("if(moved!=null){animFromFile=fromFile;animFromRank=fromRank;lastFromFile=fromFile;lastFromRank=fromRank;lastToFile=toFile;lastToRank=toRank;animatedPiece=moved;animStartNanos=System.nanoTime()}", "if(moved!=null){startMoveAnimation(fromFile,fromRank,toFile,toRank);lastFromFile=fromFile;lastFromRank=fromRank;lastToFile=toFile;lastToRank=toRank;animatedPiece=moved}")
+helpers="""    private fun animationData(name:String):List<FloatArray> = animationCache.getOrPut(name){
+        try{val lines=context.assets.open("original_resources/MEDIA/ANIMATIONS/$name.CAN").bufferedReader().use{it.readLines()};val n=lines.first().trim().toInt();val start=1+n;lines.subList(start,start+n).map{line->line.split(",").map{it.trim().toFloat()}.toFloatArray()}}catch(_:Exception){emptyList()}
+    }
+    private fun startMoveAnimation(fromFile:Int,fromRank:Int,toFile:Int,toRank:Int){
+        animFromWorldX=-17.5f+fromFile*5f;animFromWorldZ=17.5f-fromRank*5f
+        val dx=toFile-fromFile;val dz=fromRank-toRank;val ax=abs(dx);val az=abs(dz)
+        fun word(n:Int)=when(n){1->"ONE";2->"TWO";3->"THREE";4->"FOUR";5->"FIVE";6->"SIX";7->"SEVEN";else->"ZERO"}
+        val name=when{ax==az&&ax>0->word(ax)+"BY"+word(az);az==0&&ax>0->word(ax)+"BYZERO";ax==0&&az>0->word(az)+"BYZERO";maxOf(ax,az)==2&&minOf(ax,az)==1->"TWOBYONE";else->null}
+        val raw=name?.let{animationData(it)}?:emptyList()
+        if(raw.isNotEmpty()){
+            val end=raw.last();val targetX=dx*5f;val targetZ=dz*5f
+            animPath=raw.map{f->floatArrayOf(if(abs(end[0])>0.001f)f[0]/end[0]*targetX else 0f,f[1],if(abs(end[2])>0.001f)f[2]/end[2]*targetZ else if(abs(end[0])>0.001f)f[0]/end[0]*targetZ else 0f)}
+        }else{
+            animPath=(0..20).map{i->val t=i/20f;val e=t*t*(3f-2f*t);floatArrayOf(dx*5f*e,0.82f*4f*t*(1f-t),dz*5f*e)}
+        }
+        animDurationNanos=(animPath.size*24_000_000L).coerceAtLeast(240_000_000L);animStartNanos=System.nanoTime()
+    }
+"""
+s=s.replace("    private val shaderV=", helpers+"    private val shaderV=",1)
+
 # exact render tweaks and safeguards
 s=s.replace('listOf("KING","QUEEN","BISHOP","KNIGHT","ROOK","PAWN").forEach { pieces[it]=ObjMesh.load(context,"meshes/high/$it.obj") }; resetPosition()', 'listOf("KING","QUEEN","BISHOP","KNIGHT","ROOK","PAWN").forEach { pieces[it]=ObjMesh.load(context,"meshes/high/$it.obj") }; initSounds(); resetPosition()')
 s=s.replace('Matrix.perspectiveM(projection,0,36f,aspect,1f,220f)', 'Matrix.perspectiveM(projection,0,36f,aspect,1f,220f)')
