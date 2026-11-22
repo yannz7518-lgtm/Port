@@ -172,7 +172,7 @@ class ChessTitans3DPreviewActivity:Activity(){
         gl.setOnTouchListener{_,event->if(event.action==MotionEvent.ACTION_UP)gl.queueEvent{renderer.screenTap(event.x,event.y)};true}
         val root=FrameLayout(this);root.addView(gl,FrameLayout.LayoutParams(-1,-1))
         val top=LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL;setPadding(8,4,8,4);setBackgroundColor(0x770d1721.toInt())}
-        fun button(label:String,action:()->Unit)=Button(this).apply{text=label;setTextColor(Color.WHITE);setOnClickListener(action)}
+        fun button(label:String,action:()->Unit)=Button(this).apply{text=label;setTextColor(Color.WHITE);setOnClickListener{action()}}
         top.addView(button("Undo"){gl.queueEvent{renderer.undo()}},LinearLayout.LayoutParams(0,48,1f))
         top.addView(button("Baru"){gl.queueEvent{renderer.newGame()}},LinearLayout.LayoutParams(0,48,1f))
         top.addView(button("Papan"){gl.queueEvent{renderer.cycleTheme()}},LinearLayout.LayoutParams(0,48,1f))
