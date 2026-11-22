@@ -124,7 +124,7 @@ game="""    private fun resetPosition(){
         try{names.forEach{(key,file)->val bytes=context.assets.open("original_resources/MEDIA/SOUND/$file").use{it.readBytes()};soundIds[key]=soundPool!!.load(bytes,0,bytes.size,1)}}catch(_:Exception){}
         soundReady=true
     }
-    private fun playSound(key:String){if(!soundReady)return;val id=soundIds[key]?:soundIds["move"]?:return;soundPool?.play(id,0.82f,0.82f,1,0,1f)}
+    private fun playSound(key:String){if(!soundReady)return;val id=if(key=="move")soundIds["move${(1..6).random()}"] else soundIds[key];if(id!=null)soundPool?.play(id,0.82f,0.82f,1,0,1f)}
     fun release(){soundPool?.release();soundPool=null;soundReady=false}
 """
 s=s[:a]+game+s[b:]
