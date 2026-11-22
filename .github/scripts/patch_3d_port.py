@@ -12,7 +12,9 @@ s=s.replace("import android.opengl.Matrix\n", "import android.opengl.Matrix\nimp
 s=s.replace("@Volatile var cameraPitch = 45f", "@Volatile var cameraPitch = 38f").replace("@Volatile var cameraDistance = 80f", "@Volatile var cameraDistance = 58f")
 s=s.replace("fun resetCamera() { cameraYaw=0f; cameraPitch=45f; cameraDistance=80f }", "fun resetCamera() { cameraYaw=0f; cameraPitch=38f; cameraDistance=58f }")
 fields="""    private var chess=Position()
-    private val gameHistory=mutableListOf<Position>()
+    private data class GameSnapshot(val position:Position,val captured:List<BoardPiece>,val repetitions:List<String>)
+    private val gameHistory=mutableListOf<GameSnapshot>()
+    private val capturedPieces=mutableListOf<BoardPiece>()
     private val repetitionKeys=mutableListOf<String>()
     private var legalMoves=emptyList<Move>()
     @Volatile private var aiThinking=false
@@ -30,7 +32,7 @@ a=s.index("    private fun resetPosition(){")
 b=s.index("    private val shaderV=",a)
 game="""    private fun resetPosition(){
         gameGeneration++;aiThinking=false;pendingAiMove=null;aiResultReady=false
-        chess=Position();gameHistory.clear();repetitionKeys.clear();repetitionKeys.add(chess.repetitionKey())
+        chess=Position();gameHistory.clear();capturedPieces.clear();repetitionKeys.clear();repetitionKeys.add(chess.repetitionKey())
         boardPieces.clear();selectedFile=-1;selectedRank=-1;legalMoves=emptyList();animatedPiece=null
         lastFromFile=-1;lastFromRank=-1;lastToFile=-1;lastToRank=-1
         syncPieces();updateStatus()
@@ -68,7 +70,7 @@ game="""    private fun resetPosition(){
         if(aiThinking&&chess.white)return
         val fromFile=move.from%8;val fromRank=7-move.from/8;val toFile=move.to%8;val toRank=7-move.to/8
         val captured=chess.b[move.to]!='.'||move.ep
-        gameHistory.add(chess.copy());chess.apply(move);repetitionKeys.add(chess.repetitionKey())
+        val captureSquare=if(move.ep)move.to+(if(chess.white)8 else -8)else move.to;val capturedChar=chess.b[captureSquare];if(capturedChar!='.'){val capturedType=when(capturedChar.uppercaseChar()){'K'->"KING";'Q'->"QUEEN";'B'->"BISHOP";'N'->"KNIGHT";'R'->"ROOK";else->"PAWN"};capturedPieces.add(BoardPiece(capturedType,capturedChar.isUpperCase(),-1,-1))};gameHistory.add(GameSnapshot(chess.copy(),capturedPieces.toList(),repetitionKeys.toList()));chess.apply(move);repetitionKeys.add(chess.repetitionKey())
         syncPieces();val moved=boardPieces.firstOrNull{it.file==toFile&&it.rank==toRank}
         if(moved!=null){animFromFile=fromFile;animFromRank=fromRank;lastFromFile=fromFile;lastFromRank=fromRank;lastToFile=toFile;lastToRank=toRank;animatedPiece=moved;animStartNanos=System.nanoTime()}
         selectedFile=-1;selectedRank=-1;legalMoves=emptyList()
@@ -91,9 +93,10 @@ game="""    private fun resetPosition(){
     fun undo(){
         gameGeneration++;aiThinking=false;pendingAiMove=null;aiResultReady=false
         if(gameHistory.isNotEmpty()){
-            chess=gameHistory.removeAt(gameHistory.lastIndex)
-            if(!chess.white&&gameHistory.isNotEmpty())chess=gameHistory.removeAt(gameHistory.lastIndex)
-            repetitionKeys.clear();repetitionKeys.add(chess.repetitionKey());selectedFile=-1;selectedRank=-1;legalMoves=emptyList();animatedPiece=null;syncPieces();updateStatus()
+            var snapshot=gameHistory.removeAt(gameHistory.lastIndex)
+            if(!snapshot.position.white&&gameHistory.isNotEmpty())snapshot=gameHistory.removeAt(gameHistory.lastIndex)
+            chess=snapshot.position.copy();capturedPieces.clear();capturedPieces.addAll(snapshot.captured)
+            repetitionKeys.clear();repetitionKeys.addAll(snapshot.repetitions);selectedFile=-1;selectedRank=-1;legalMoves=emptyList();animatedPiece=null;syncPieces();updateStatus()
         }
     }
     fun newGame(){resetPosition();playSound("move")}
