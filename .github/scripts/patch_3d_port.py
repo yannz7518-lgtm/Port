@@ -34,7 +34,7 @@ if "private var chess=Position()" not in s:
 a=s.index("    private fun resetPosition(){")
 b=s.index("    private val shaderV=",a)
 game="""    private fun resetPosition(){
-        gameGeneration++;aiThinking=false;pendingAiMove=null;aiResultReady=false
+        gameGeneration++;aiThinking=false;pendingAiMove=null;aiResultReady=false;gameOverSoundPlayed=false
         chess=Position();gameHistory.clear();capturedPieces.clear();repetitionKeys.clear();repetitionKeys.add(chess.repetitionKey())
         boardPieces.clear();selectedFile=-1;selectedRank=-1;legalMoves=emptyList();animatedPiece=null
         lastFromFile=-1;lastFromRank=-1;lastToFile=-1;lastToRank=-1
@@ -110,6 +110,7 @@ game="""    private fun resetPosition(){
     }
     private fun updateStatus(){
         val lm=chess.legal()
+        if(lm.isEmpty()&&chess.inCheck(chess.white)&&!gameOverSoundPlayed){gameOverSoundPlayed=true;playSound(if(chess.white)"lose" else "win")}
         val msg=when{
             lm.isEmpty()&&chess.inCheck(chess.white)->if(chess.white)"Skakmat — Hitam menang" else "Skakmat — Putih menang"
             lm.isEmpty()->"Remis — stalemate"
