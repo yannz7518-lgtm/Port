@@ -1,4 +1,4 @@
-name: Build Chess Titans APK
+name: Build Chess Titans APK # emits artifact for emulator visual check
 
 on:
   workflow_dispatch:
