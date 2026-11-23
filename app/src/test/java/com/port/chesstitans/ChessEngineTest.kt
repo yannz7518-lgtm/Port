@@ -21,7 +21,7 @@ class ChessEngineTest {
     @Test fun cannotMoveIntoCheck(){
         val game=ChessEngine()
         for(r in 0..7)for(c in 0..7)game.board[r][c]='.'
-        game.board[7][4]='K';game.board[0][4]='k';game.board[0][0]='r'
+        game.board[7][4]='K';game.board[0][0]='k';game.board[0][4]='r'
         game.whiteToMove=true
         assertFalse(game.legalMoves(7,4).any{it.tr==6&&it.tc==4})
     }
