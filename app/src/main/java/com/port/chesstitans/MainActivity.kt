@@ -37,7 +37,7 @@ class MainActivity : Activity() {
         private var selected:Pair<Int,Int>?=null;private var targets=emptyList<ChessEngine.Move>();private val undo=mutableListOf<String>()
         private val unicode=mapOf('K' to "♔",'Q' to "♕",'R' to "♖",'B' to "♗",'N' to "♘",'P' to "♙",'k' to "♚",'q' to "♛",'r' to "♜",'b' to "♝",'n' to "♞",'p' to "♟")
         fun reset(){game.reset();selected=null;targets=emptyList();undo.clear();invalidate();changed()}
-        fun undo(){Toast.makeText(this@MainActivity,"Undo is not enabled yet.",Toast.LENGTH_SHORT).show()}
+        fun undo(){if(game.undo()){if(ai&&game.whiteToMove&&game.undo()){};selected=null;targets=emptyList();invalidate();changed()}else Toast.makeText(this@MainActivity,"Nothing to undo.",Toast.LENGTH_SHORT).show()}
         override fun onDraw(canvas:Canvas){
             super.onDraw(canvas);val margin=28f;sq=minOf((width-2*margin)/8f,(height-2*margin)/8f);l=(width-sq*8)/2;t=(height-sq*8)/2
             val frame=RectF(l-7,t-7,l+sq*8+7,t+sq*8+7);p.shader=LinearGradient(frame.left,frame.top,frame.right,frame.bottom,Color.rgb(107,70,39),Color.rgb(39,24,14),Shader.TileMode.CLAMP);canvas.drawRoundRect(frame,10f,10f,p);p.shader=null
