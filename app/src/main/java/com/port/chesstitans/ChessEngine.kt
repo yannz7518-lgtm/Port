@@ -31,10 +31,21 @@ class ChessEngine {
     }
     fun undo():Boolean { if(history.isEmpty())return false; restore(history.removeAt(history.lastIndex)); status=if(whiteToMove) "White to move" else "Black to move"; return true }
     fun computerMove():Boolean { val moves=allLegal(); if(moves.isEmpty())return false
-        // Prefer captures, checks, and central moves; deterministic light-weight evaluation.
-        val chosen=moves.maxByOrNull { m -> (if(board[m.tr][m.tc]!='.')value(board[m.tr][m.tc])*10 else 0)+(if(center(m.tr,m.tc))2 else 0)+(if(m.promotion!=null)80 else 0) }!!
-        return play(chosen)
+        var best:Move?=null; var bestScore=Int.MAX_VALUE
+        for(m in moves){val s=snapshot();applyRaw(m);whiteToMove=true;val score=minimax(1);restore(s)
+            val tie=(if(center(m.tr,m.tc))1 else 0);if(score*100-tie<bestScore){bestScore=score*100-tie;best=m}}
+        return best?.let{play(it)}?:false
     }
+    // Scores are from White's point of view; the computer plays Black and minimizes.
+    private fun minimax(depth:Int):Int {
+        val moves=allLegal();if(moves.isEmpty())return if(inCheck(whiteToMove)){if(whiteToMove)-10000+depth else 10000-depth}else 0
+        if(depth==0)return evaluate()
+        var best=if(whiteToMove)Int.MIN_VALUE else Int.MAX_VALUE
+        for(m in moves){val s=snapshot();applyRaw(m);whiteToMove=!whiteToMove;val score=minimax(depth-1);restore(s)
+            if(whiteToMove)best=maxOf(best,score)else best=minOf(best,score)}
+        return best
+    }
+    private fun evaluate():Int {var score=0;for(r in 0..7)for(c in 0..7){val p=board[r][c];if(p!='.')score+=(if(p.isUpperCase())1 else -1)*value(p)*100+ (if(center(r,c)) (if(p.isUpperCase())4 else -4) else 0)};return score}
     private fun center(r:Int,c:Int)=r in 2..5&&c in 2..5
     private fun value(p:Char)=when(p.lowercaseChar()){'q'->9;'r'->5;'b','n'->3;'p'->1;else->0}
     private fun isWhite(p:Char)=p.isUpperCase()
