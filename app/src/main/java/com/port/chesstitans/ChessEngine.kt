@@ -4,7 +4,8 @@ class ChessEngine {
     val board = Array(8) { CharArray(8) { '.' } }
     var whiteToMove = true
     var enPassant: Pair<Int,Int>? = null
-    var status = "White to move"\n    var lastMove:Move?=null
+    var status = "White to move"
+    var lastMove:Move?=null
     private var whiteKingSide=true; private var whiteQueenSide=true
     private var blackKingSide=true; private var blackQueenSide=true
     private var halfmoveClock=0
