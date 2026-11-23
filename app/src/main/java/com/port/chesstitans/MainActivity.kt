@@ -62,7 +62,7 @@ class MainActivity : Activity() {
                 val ch=game.board[r][c];if(ch!='.'){p.typeface=Typeface.create("serif",Typeface.NORMAL);p.textAlign=Paint.Align.CENTER;p.textSize=sq*.78f;p.color=if(ch.isUpperCase())Color.rgb(250,246,225)else Color.rgb(23,21,19);p.setShadowLayer(2f,1f,2f,Color.BLACK);canvas.drawText(unicode[ch]?:ch.toString(),x+sq/2,y+sq*.78f,p);p.clearShadowLayer()}
             }
             p.color=gold;p.textSize=12f;p.textAlign=Paint.Align.CENTER
-            for(i in 0..7){canvas.drawText((8-i).toString(),l-12,t+i*sq+sq/2+4,p);canvas.drawText(('a'.code+i).toChar().toString(),l+i*sq+sq/2,t+sq*8+17,p)}
+            for(i in 0..7){canvas.drawText((if(humanWhite)8-i else i+1).toString(),l-12,t+i*sq+sq/2+4,p);canvas.drawText((if(humanWhite)('a'.code+i)else ('h'.code-i)).toChar().toString(),l+i*sq+sq/2,t+sq*8+17,p)}
         }
         override fun onTouchEvent(e:MotionEvent):Boolean{if(e.action!=MotionEvent.ACTION_UP)return true;var c=((e.x-l)/sq).toInt();var r=((e.y-t)/sq).toInt();if(r !in 0..7||c !in 0..7)return true;if(!humanWhite){r=7-r;c=7-c}
             val sel=selected
