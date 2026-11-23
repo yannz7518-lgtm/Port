@@ -4,21 +4,21 @@ class ChessEngine {
     val board = Array(8) { CharArray(8) { '.' } }
     var whiteToMove = true
     var enPassant: Pair<Int,Int>? = null
-    var status = "White to move"
+    var status = "White to move"\n    var lastMove:Move?=null
     private var whiteKingSide=true; private var whiteQueenSide=true
     private var blackKingSide=true; private var blackQueenSide=true
     private var halfmoveClock=0
     private val history=mutableListOf<State>()
     private val repetition=mutableMapOf<String,Int>()
     data class Move(val fr:Int,val fc:Int,val tr:Int,val tc:Int,val promotion:Char?=null,val castle:Boolean=false,val ep:Boolean=false)
-    private data class State(val squares:Array<CharArray>,val ep:Pair<Int,Int>?,val white:Boolean,val status:String,val wk:Boolean,val wq:Boolean,val bk:Boolean,val bq:Boolean,val half:Int,val key:String)
+    private data class State(val squares:Array<CharArray>,val ep:Pair<Int,Int>?,val white:Boolean,val status:String,val wk:Boolean,val wq:Boolean,val bk:Boolean,val bq:Boolean,val half:Int,val last:Move?,val key:String)
 
     init { reset() }
     fun reset(){
         val back="rnbqkbnr"
         for(r in 0..7)for(c in 0..7)board[r][c]='.'
         for(c in 0..7){board[0][c]=back[c];board[1][c]='p';board[6][c]='P';board[7][c]=back[c].uppercaseChar()}
-        whiteToMove=true;enPassant=null;status="White to move"
+        whiteToMove=true;enPassant=null;status="White to move";lastMove=null
         whiteKingSide=true;whiteQueenSide=true;blackKingSide=true;blackQueenSide=true;halfmoveClock=0
         history.clear();repetition.clear();repetition[key()]=1
     }
@@ -30,7 +30,7 @@ class ChessEngine {
     fun allLegal():List<Move> =(0..7).flatMap{r->(0..7).flatMap{c->legalMoves(r,c)}}
     fun play(m:Move):Boolean{
         if(m !in legalMoves(m.fr,m.fc))return false
-        history.add(snapshot());applyRaw(m);whiteToMove=!whiteToMove
+        history.add(snapshot());applyRaw(m);lastMove=m;whiteToMove=!whiteToMove
         val k=key();repetition[k]=(repetition[k]?:0)+1
         updateStatus();return true
     }
@@ -41,7 +41,7 @@ class ChessEngine {
     }
     fun computerMove(level:Int=1):Boolean{
         val moves=allLegal();if(moves.isEmpty())return false
-        val depth=when(level){1->1;else->2}
+        val depth=when(level){1->1;2->2;else->3}
         var best:Move?=null;var bestScore=if(whiteToMove)Int.MIN_VALUE else Int.MAX_VALUE
         for(m in moves){val s=snapshot();applyRaw(m);whiteToMove=!whiteToMove;val score=search(depth-1,-100000,100000);restore(s)
             val adjusted=score+(if(center(m.tr,m.tc))if(whiteToMove)3 else -3 else 0)
@@ -105,6 +105,6 @@ class ChessEngine {
     }
     private fun insufficientMaterial():Boolean{val pieces=mutableListOf<Pair<Char,Pair<Int,Int>>>();for(r in 0..7)for(c in 0..7){val p=board[r][c];if(p!='.'&&p.lowercaseChar()!='k')pieces.add(p to (r to c))};if(pieces.isEmpty())return true;if(pieces.size==1&&pieces[0].first.lowercaseChar() in listOf('b','n'))return true;if(pieces.all{it.first.lowercaseChar()=='b'}){val colors=pieces.map{(r,c)->(r+c)%2}.distinct();return colors.size==1};return false}
     private fun key():String=board.joinToString(""){String(it)}+"|"+whiteToMove+"|"+whiteKingSide+whiteQueenSide+blackKingSide+blackQueenSide+"|"+enPassant
-    private fun snapshot()=State(board.map{it.copyOf()}.toTypedArray(),enPassant,whiteToMove,status,whiteKingSide,whiteQueenSide,blackKingSide,blackQueenSide,halfmoveClock,key())
-    private fun restore(s:State){for(r in 0..7)board[r]=s.squares[r].copyOf();enPassant=s.ep;whiteToMove=s.white;status=s.status;whiteKingSide=s.wk;whiteQueenSide=s.wq;blackKingSide=s.bk;blackQueenSide=s.bq;halfmoveClock=s.half}
+    private fun snapshot()=State(board.map{it.copyOf()}.toTypedArray(),enPassant,whiteToMove,status,whiteKingSide,whiteQueenSide,blackKingSide,blackQueenSide,halfmoveClock,lastMove,key())
+    private fun restore(s:State){for(r in 0..7)board[r]=s.squares[r].copyOf();enPassant=s.ep;whiteToMove=s.white;status=s.status;whiteKingSide=s.wk;whiteQueenSide=s.wq;blackKingSide=s.bk;blackQueenSide=s.bq;halfmoveClock=s.half;lastMove=s.last}
 }
