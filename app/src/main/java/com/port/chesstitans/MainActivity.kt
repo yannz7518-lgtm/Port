@@ -34,10 +34,10 @@ class MainActivity : Activity() {
     }
     private inner class BoardView(ctx:android.content.Context,val game:ChessEngine,val ai:Boolean,val changed:()->Unit):View(ctx){
         private val p=Paint(Paint.ANTI_ALIAS_FLAG);private var sq=0f;private var l=0f;private var t=0f
-        private var selected:Pair<Int,Int>?=null;private var targets=emptyList<ChessEngine.Move>();private val undo=mutableListOf<String>()
+        private var selected:Pair<Int,Int>?=null;private var targets=emptyList<ChessEngine.Move>();private var aiMoveInLastTurn=false
         private val unicode=mapOf('K' to "♔",'Q' to "♕",'R' to "♖",'B' to "♗",'N' to "♘",'P' to "♙",'k' to "♚",'q' to "♛",'r' to "♜",'b' to "♝",'n' to "♞",'p' to "♟")
-        fun reset(){game.reset();selected=null;targets=emptyList();undo.clear();invalidate();changed()}
-        fun undo(){if(game.undo()){if(ai&&game.whiteToMove&&game.undo()){};selected=null;targets=emptyList();invalidate();changed()}else Toast.makeText(this@MainActivity,"Nothing to undo.",Toast.LENGTH_SHORT).show()}
+        fun reset(){game.reset();selected=null;targets=emptyList();aiMoveInLastTurn=false;invalidate();changed()}
+        fun undo(){if(game.undo()){if(aiMoveInLastTurn)game.undo();aiMoveInLastTurn=false;selected=null;targets=emptyList();invalidate();changed()}else Toast.makeText(this@MainActivity,"Nothing to undo.",Toast.LENGTH_SHORT).show()}
         override fun onDraw(canvas:Canvas){
             super.onDraw(canvas);val margin=28f;sq=minOf((width-2*margin)/8f,(height-2*margin)/8f);l=(width-sq*8)/2;t=(height-sq*8)/2
             val frame=RectF(l-7,t-7,l+sq*8+7,t+sq*8+7);p.shader=LinearGradient(frame.left,frame.top,frame.right,frame.bottom,Color.rgb(107,70,39),Color.rgb(39,24,14),Shader.TileMode.CLAMP);canvas.drawRoundRect(frame,10f,10f,p);p.shader=null
@@ -52,7 +52,7 @@ class MainActivity : Activity() {
         override fun onTouchEvent(e:MotionEvent):Boolean{if(e.action!=MotionEvent.ACTION_UP)return true;val c=((e.x-l)/sq).toInt();val r=((e.y-t)/sq).toInt();if(r !in 0..7||c !in 0..7)return true
             val sel=selected
             if(sel==null){if(game.board[r][c]!='.'&&game.board[r][c].isUpperCase()==game.whiteToMove){selected=Pair(r,c);targets=game.legalMoves(r,c)}}
-            else {val m=targets.firstOrNull{it.tr==r&&it.tc==c};if(m!=null){game.play(m);selected=null;targets=emptyList();if(ai&&!game.whiteToMove&&game.status!="Checkmate — White wins"&&game.status!="Checkmate — Black wins"&&game.status!="Stalemate"){game.computerMove()};changed()}else if(game.board[r][c]!='.'&&game.board[r][c].isUpperCase()==game.whiteToMove){selected=Pair(r,c);targets=game.legalMoves(r,c)}else{selected=null;targets=emptyList()}}
+            else {val m=targets.firstOrNull{it.tr==r&&it.tc==c};if(m!=null){game.play(m);selected=null;targets=emptyList();if(ai&&!game.whiteToMove&&game.status!="Checkmate — White wins"&&game.status!="Checkmate — Black wins"&&game.status!="Stalemate"){game.computerMove();aiMoveInLastTurn=true};changed()}else if(game.board[r][c]!='.'&&game.board[r][c].isUpperCase()==game.whiteToMove){selected=Pair(r,c);targets=game.legalMoves(r,c)}else{selected=null;targets=emptyList()}}
             invalidate();return true}
     }
 }
