@@ -38,7 +38,7 @@ class MainActivity : Activity() {
         val engine=ChessEngine();val layout=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setBackgroundColor(bg)}
         val status=TextView(this).apply{text=engine.status;textSize=15f;setTextColor(gold);gravity=Gravity.CENTER;setPadding(8,10,8,6)}
         layout.addView(status,LinearLayout.LayoutParams(-1,-2))
-        val board=BoardView(engine,vsAI,humanWhite,level){status.text=engine.status;status.invalidate()};layout.addView(board,LinearLayout.LayoutParams(-1,0,1f));if(vsAI&&!humanWhite){board.startComputer();status.text=engine.status}
+        val board=BoardView(this,engine,vsAI,humanWhite,level){status.text=engine.status;status.invalidate()};layout.addView(board,LinearLayout.LayoutParams(-1,0,1f));if(vsAI&&!humanWhite){board.startComputer();status.text=engine.status}
         val row=LinearLayout(this).apply{gravity=Gravity.CENTER}
         menuButton(row,"UNDO",105,46){board.undo();status.text=engine.status}
         menuButton(row,"NEW",105,46){board.reset();status.text=engine.status}
