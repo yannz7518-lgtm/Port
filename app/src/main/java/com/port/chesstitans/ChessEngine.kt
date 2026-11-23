@@ -27,7 +27,7 @@ class ChessEngine {
         val p=board[r][c];if(p=='.'||isWhite(p)!=whiteToMove)return emptyList()
         return pseudo(r,c).filter{m->val s=snapshot();applyRaw(m);val safe=!inCheck(whiteToMove);restore(s);safe}
     }
-    fun allLegal():List<Move>=(0..7).flatMap{r->(0..7).flatMap{c->legalMoves(r,c)}}
+    fun allLegal():List<Move> =(0..7).flatMap{r->(0..7).flatMap{c->legalMoves(r,c)}}
     fun play(m:Move):Boolean{
         if(m !in legalMoves(m.fr,m.fc))return false
         history.add(snapshot());applyRaw(m);whiteToMove=!whiteToMove
