@@ -42,7 +42,7 @@ class MainActivity : Activity() {
         private val p=Paint(Paint.ANTI_ALIAS_FLAG);private var sq=0f;private var l=0f;private var t=0f
         private var selected:Pair<Int,Int>?=null;private var targets=emptyList<ChessEngine.Move>();private var aiMoveInLastTurn=false
         private val unicode=mapOf('K' to "♔",'Q' to "♕",'R' to "♖",'B' to "♗",'N' to "♘",'P' to "♙",'k' to "♚",'q' to "♛",'r' to "♜",'b' to "♝",'n' to "♞",'p' to "♟")
-        fun reset(){game.reset();selected=null;targets=emptyList();aiMoveInLastTurn=false;invalidate();changed()}
+        fun reset(){game.reset();selected=null;targets=emptyList();aiMoveInLastTurn=false;if(ai&&!humanWhite)game.computerMove(level);invalidate();changed()}
         fun startComputer(){if(ai&&!humanWhite){game.computerMove(level);invalidate();changed()}}
         fun undo(){if(game.undo()){if(aiMoveInLastTurn)game.undo();aiMoveInLastTurn=false;selected=null;targets=emptyList();invalidate();changed()}else Toast.makeText(this@MainActivity,"Nothing to undo.",Toast.LENGTH_SHORT).show()}
         override fun onDraw(canvas:Canvas){
