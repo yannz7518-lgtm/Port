@@ -34,8 +34,6 @@ class ChessEngineTest {
         assertEquals('Q',promotion.promotion)
         assertTrue(game.play(promotion));assertEquals('Q',game.board[0][0])
     }
-}
-
     @Test fun castlingMovesRookAndKing(){
         val game=ChessEngine()
         for(r in 0..7)for(c in 0..7)game.board[r][c]='.'
@@ -54,3 +52,4 @@ class ChessEngineTest {
         assertNotNull(ep);assertTrue(game.play(ep!!))
         assertEquals('P',game.board[2][3]);assertEquals('.',game.board[3][3])
     }
+}
