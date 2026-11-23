@@ -59,7 +59,7 @@ class MainActivity : Activity() {
         override fun onTouchEvent(e:MotionEvent):Boolean{if(e.action!=MotionEvent.ACTION_UP)return true;var c=((e.x-l)/sq).toInt();var r=((e.y-t)/sq).toInt();if(r !in 0..7||c !in 0..7)return true;if(!humanWhite){r=7-r;c=7-c}
             val sel=selected
             if(sel==null){if(game.board[r][c]!='.'&&game.board[r][c].isUpperCase()==game.whiteToMove){selected=Pair(r,c);targets=game.legalMoves(r,c)}}
-            else {val m=targets.firstOrNull{it.tr==r&&it.tc==c};if(m!=null){game.play(m);selected=null;targets=emptyList();if(ai&&!game.whiteToMove&&game.status!="Checkmate — White wins"&&game.status!="Checkmate — Black wins"&&game.status!="Stalemate"){game.computerMove(level);aiMoveInLastTurn=true};changed()}else if(game.board[r][c]!='.'&&game.board[r][c].isUpperCase()==game.whiteToMove){selected=Pair(r,c);targets=game.legalMoves(r,c)}else{selected=null;targets=emptyList()}}
+            else {val m=targets.firstOrNull{it.tr==r&&it.tc==c};if(m!=null){game.play(m);selected=null;targets=emptyList();if(ai&&game.whiteToMove!=humanWhite&&!game.status.startsWith("Checkmate")&&game.status!="Stalemate"&&!game.status.startsWith("Draw")){game.computerMove(level);aiMoveInLastTurn=true};changed()}else if(game.board[r][c]!='.'&&game.board[r][c].isUpperCase()==game.whiteToMove){selected=Pair(r,c);targets=game.legalMoves(r,c)}else{selected=null;targets=emptyList()}}
             invalidate();return true}
     }
 }
