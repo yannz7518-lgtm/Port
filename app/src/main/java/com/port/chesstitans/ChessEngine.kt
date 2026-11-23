@@ -101,8 +101,9 @@ class ChessEngine {
         enPassant=if(p.lowercaseChar()=='p'&&kotlin.math.abs(m.tr-m.fr)==2)Pair((m.tr+m.fr)/2,m.fc)else null
     }
     private fun updateStatus(){
-        val moves=allLegal();status=when{moves.isEmpty()&&inCheck(whiteToMove)->if(whiteToMove)"Checkmate — Black wins" else "Checkmate — White wins";moves.isEmpty()->"Stalemate";repetition[key()]?:0>=3->"Draw — threefold repetition";halfmoveClock>=100->"Draw — 50-move rule";inCheck(whiteToMove)->if(whiteToMove)"White in check" else "Black in check";else->if(whiteToMove)"White to move" else "Black to move"}
+        val moves=allLegal();status=when{moves.isEmpty()&&inCheck(whiteToMove)->if(whiteToMove)"Checkmate — Black wins" else "Checkmate — White wins";moves.isEmpty()->"Stalemate";(repetition[key()] ?: 0)>=3->"Draw — threefold repetition";halfmoveClock>=100->"Draw — 50-move rule";insufficientMaterial()->"Draw — insufficient material";inCheck(whiteToMove)->if(whiteToMove)"White in check" else "Black in check";else->if(whiteToMove)"White to move" else "Black to move"}
     }
+    private fun insufficientMaterial():Boolean{val pieces=mutableListOf<Pair<Char,Pair<Int,Int>>>();for(r in 0..7)for(c in 0..7){val p=board[r][c];if(p!='.'&&p.lowercaseChar()!='k')pieces.add(p to (r to c))};if(pieces.isEmpty())return true;if(pieces.size==1&&pieces[0].first.lowercaseChar() in listOf('b','n'))return true;if(pieces.all{it.first.lowercaseChar()=='b'}){val colors=pieces.map{(r,c)->(r+c)%2}.distinct();return colors.size==1};return false}
     private fun key():String=board.joinToString(""){String(it)}+"|"+whiteToMove+"|"+whiteKingSide+whiteQueenSide+blackKingSide+blackQueenSide+"|"+enPassant
     private fun snapshot()=State(board.map{it.copyOf()}.toTypedArray(),enPassant,whiteToMove,status,whiteKingSide,whiteQueenSide,blackKingSide,blackQueenSide,halfmoveClock,key())
     private fun restore(s:State){for(r in 0..7)board[r]=s.squares[r].copyOf();enPassant=s.ep;whiteToMove=s.white;status=s.status;whiteKingSide=s.wk;whiteQueenSide=s.wq;blackKingSide=s.bk;blackQueenSide=s.bq;halfmoveClock=s.half}
