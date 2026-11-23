@@ -41,7 +41,7 @@ class ChessEngine {
     }
     fun computerMove(level:Int=1):Boolean{
         val moves=allLegal();if(moves.isEmpty())return false
-        val depth=if(level>=3)2 else 1
+        val depth=when(level){1->1;else->2}
         var best:Move?=null;var bestScore=if(whiteToMove)Int.MIN_VALUE else Int.MAX_VALUE
         for(m in moves){val s=snapshot();applyRaw(m);whiteToMove=!whiteToMove;val score=search(depth-1,-100000,100000);restore(s)
             val adjusted=score+(if(center(m.tr,m.tc))if(whiteToMove)3 else -3 else 0)
