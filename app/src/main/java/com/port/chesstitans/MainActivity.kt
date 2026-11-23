@@ -18,10 +18,17 @@ class MainActivity : Activity() {
         root.addView(TextView(this).apply{text="NATIVE ANDROID CHESS • PLAYABLE BUILD";textSize=12f;setTextColor(Color.LTGRAY);gravity=Gravity.CENTER;setPadding(0,8,0,28)})
         menuButton(root,"PLAY VS COMPUTER",300,58){chooseSetup()}
         menuButton(root,"TWO PLAYER",300,54){showGame(false)}
-        menuButton(root,"SETTINGS",300,54){Toast.makeText(this,"Visual settings will be added in a later milestone.",Toast.LENGTH_SHORT).show()}
+        menuButton(root,"SETTINGS",300,54){chooseAppearance()}
         menuButton(root,"EXIT",300,54){finish()};setContentView(root)
     }
     private fun menuButton(p:LinearLayout,t:String,w:Int,h:Int,a:()->Unit){val b=Button(this).apply{text=t;textSize=15f;setTextColor(Color.WHITE);setBackgroundColor(Color.rgb(43,61,78))};val lp=LinearLayout.LayoutParams(w,h);lp.setMargins(0,5,0,5);p.addView(b,lp);b.setOnClickListener{a()}}
+    private fun chooseAppearance(){
+        val current=getSharedPreferences("chess",MODE_PRIVATE).getInt("boardTheme",0)
+        AlertDialog.Builder(this).setTitle("Board appearance").setSingleChoiceItems(arrayOf("Wood","Classic Green","Marble"),current){dialog,which->
+            getSharedPreferences("chess",MODE_PRIVATE).edit().putInt("boardTheme",which).apply()
+            Toast.makeText(this,"Appearance saved. Start a new game to apply.",Toast.LENGTH_SHORT).show();dialog.dismiss()
+        }.setNegativeButton("Cancel",null).show()
+    }
     private fun chooseSetup(){
         AlertDialog.Builder(this).setTitle("Choose your side").setItems(arrayOf("Play as White","Play as Black")){_,side->
             AlertDialog.Builder(this).setTitle("Computer difficulty").setItems(arrayOf("Easy","Normal","Hard")){_,level->showGame(true,side==0,level+1)}.show()
@@ -47,8 +54,9 @@ class MainActivity : Activity() {
         fun undo(){if(game.undo()){if(aiMoveInLastTurn)game.undo();aiMoveInLastTurn=false;selected=null;targets=emptyList();invalidate();changed()}else Toast.makeText(this@MainActivity,"Nothing to undo.",Toast.LENGTH_SHORT).show()}
         override fun onDraw(canvas:Canvas){
             super.onDraw(canvas);val margin=28f;sq=minOf((width-2*margin)/8f,(height-2*margin)/8f);l=(width-sq*8)/2;t=(height-sq*8)/2
-            val frame=RectF(l-7,t-7,l+sq*8+7,t+sq*8+7);p.shader=LinearGradient(frame.left,frame.top,frame.right,frame.bottom,Color.rgb(107,70,39),Color.rgb(39,24,14),Shader.TileMode.CLAMP);canvas.drawRoundRect(frame,10f,10f,p);p.shader=null
-            for(dr in 0..7)for(dc in 0..7){val r=if(humanWhite)dr else 7-dr;val c=if(humanWhite)dc else 7-dc;val x=l+dc*sq;val y=t+dr*sq;p.color=if((r+c)%2==0)Color.rgb(224,205,164)else Color.rgb(105,75,49);canvas.drawRect(x,y,x+sq,y+sq,p)
+            val theme=getSharedPreferences("chess",MODE_PRIVATE).getInt("boardTheme",0);val frame=RectF(l-7,t-7,l+sq*8+7,t+sq*8+7);val frameColors=when(theme){1->intArrayOf(Color.rgb(65,100,55),Color.rgb(24,44,24));2->intArrayOf(Color.rgb(140,145,150),Color.rgb(55,60,66));else->intArrayOf(Color.rgb(107,70,39),Color.rgb(39,24,14))};p.shader=LinearGradient(frame.left,frame.top,frame.right,frame.bottom,frameColors[0],frameColors[1],Shader.TileMode.CLAMP);canvas.drawRoundRect(frame,10f,10f,p);p.shader=null
+            for(dr in 0..7)for(dc in 0..7){val r=if(humanWhite)dr else 7-dr;val c=if(humanWhite)dc else 7-dc;val x=l+dc*sq;val y=t+dr*sq;val colors=when(theme){1->intArrayOf(Color.rgb(238,238,210),Color.rgb(118,150,86));2->intArrayOf(Color.rgb(224,224,226),Color.rgb(105,112,122));else->intArrayOf(Color.rgb(224,205,164),Color.rgb(105,75,49))};p.color=if((r+c)%2==0)colors[0]else colors[1];canvas.drawRect(x,y,x+sq,y+sq,p)
+                val last=game.lastMove;if(last!=null&&(last.fr==r&&last.fc==c||last.tr==r&&last.tc==c)){p.color=Color.argb(85,240,210,65);canvas.drawRect(x,y,x+sq,y+sq,p)}
                 if(selected==Pair(r,c)){p.color=Color.argb(120,240,198,66);canvas.drawRect(x,y,x+sq,y+sq,p)}
                 if(targets.any{it.tr==r&&it.tc==c}){p.color=if(game.board[r][c]=='.')Color.argb(120,45,115,75)else Color.argb(130,170,55,40);canvas.drawCircle(x+sq/2,y+sq/2,sq*.13f,p)}
                 val ch=game.board[r][c];if(ch!='.'){p.typeface=Typeface.create("serif",Typeface.NORMAL);p.textAlign=Paint.Align.CENTER;p.textSize=sq*.78f;p.color=if(ch.isUpperCase())Color.rgb(250,246,225)else Color.rgb(23,21,19);p.setShadowLayer(2f,1f,2f,Color.BLACK);canvas.drawText(unicode[ch]?:ch.toString(),x+sq/2,y+sq*.78f,p);p.clearShadowLayer()}
